@@ -2,6 +2,7 @@ from sqlmodel import Field, SQLModel, Relationship
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date 
+from pydantic import field_validator
 
 class CustomerBase(BaseModel): 
 
@@ -11,6 +12,14 @@ class CustomerBase(BaseModel):
 class CustomerCreate(CustomerBase): 
 
     date_birth: date
+
+    @field_validator("date_birth")
+    @classmethod
+    def validate_birth(cls, value):
+        if value > date.today(): 
+            raise ValueError("The date cant be future")
+        return value 
+
     
 class Customer(SQLModel, table=True): 
 
@@ -28,6 +37,5 @@ class CustomerUpdate(BaseModel):
     date_birth: Optional[date] = None
    
     
-
 from .reservations import Reservation
 from .payments import Payment

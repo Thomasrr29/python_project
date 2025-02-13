@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI): 
 
     print("Creando todas las tablas")
-    create_tables()
+    await create_tables()
 
     yield
     print("Application closing.....")

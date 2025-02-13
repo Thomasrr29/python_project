@@ -1,24 +1,17 @@
 from sqlmodel import Field, SQLModel, Relationship 
-from common.types.payments_type import ReservationsTypesEnum, PaymentMethodsEnum
+from common.types.payments_type import ReservationStatusEnum, PaymentMethodsEnum, RoomsTypesEnum
 from pydantic import BaseModel
 from typing import Optional
 
-
-class PaymentBase(BaseModel): 
-
-    reservation_type: ReservationsTypesEnum 
-    amount: int 
-
 class PaymentCreate(BaseModel):
 
-    reservation_type: ReservationsTypesEnum 
     payment_method: PaymentMethodsEnum
+    customer_id: int
     amount: int 
 
 class Payment(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
-    reservation_type: ReservationsTypesEnum 
     payment_method: PaymentMethodsEnum
     amount: int 
     customer_id: int = Field(foreign_key="customer.id")
@@ -27,8 +20,7 @@ class Payment(SQLModel, table=True):
 
 class PaymentUpdate(BaseModel): 
 
-    reservation_type: Optional[ReservationsTypesEnum] 
-    amount: Optional[int] 
+    payment_method: Optional[int] 
 
 from .customers import Customer
 from .reservations import Reservation

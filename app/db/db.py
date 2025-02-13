@@ -1,20 +1,22 @@
-from sqlmodel import SQLModel, create_engine, Session 
-from typing import Annotated
+from sqlmodel import SQLModel
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from typing import AsyncGenerator
 from fastapi import Depends 
 
-DATABASE_URL = "postgresql+psycopg2://default:ObkhogH71VUe@ep-royal-recipe-a45z89em-pooler.us-east-1.aws.neon.tech/verceldb?sslmode=require"
+DATABASE_URL = "postgresql+asyncpg://default:ObkhogH71VUe@ep-royal-recipe-a45z89em-pooler.us-east-1.aws.neon.tech/verceldb"
 
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=True)
 
-def get_session(): 
+async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-    with Session(engine) as session: 
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]: 
+
+    async with async_session_maker() as session: 
         yield session 
 
-def create_tables(): 
+async def create_tables(): 
 
-    SQLModel.metadata.create_all(engine)
-
-SessionDep = Annotated[Session, Depends(get_session)]
-
-
+    async with engine.begin() as coon: 
+    
+        await coon.run_sync(SQLModel.metadata.create_all)
