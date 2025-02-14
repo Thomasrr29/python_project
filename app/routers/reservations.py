@@ -33,6 +33,7 @@ async def get_reservation_by_id(reservation_id: int, session: AsyncSession = Dep
     return reservation
 
 @router.post("/reservations", tags=["Reservations"])
+@validate_room_disponibility
 async def create_reservation(reservation_data: ReservationCreate, session: AsyncSession = Depends(get_async_session)): 
 
     try: 
@@ -59,8 +60,6 @@ async def create_reservation(reservation_data: ReservationCreate, session: Async
             payment_id=payment_created.id,
             room_id=reservation_data.room_id
         )
-
-        print("Customer_id: ", reservation_data.payment.customer_id)
 
         session.add(reservation)
         await session.commit()
@@ -115,37 +114,6 @@ async def delete_reservations(reservation_id: int, session: AsyncSession = Depen
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"message: {e}")
 
-@router.post("/reservations/verification", tags=["Reservations"])                 
-async def wrapper(reservation_data: ReservationCreate, session: AsyncSession = Depends(get_async_session)): 
-
-        result = await session.execute(select(Reservation).where(Reservation.room_id == reservation_data.room_id))
-        room_reservations = result.scalars().all()
-
-        reservation_date_start = str(reservation_data.start)
-        reservation_date_end = str(reservation_data.end) 
-
-        for reservation in room_reservations:
-           
-           date_start_reservation = str(reservation.start)
-           date_end_reservation = str(reservation.end)
-
-           if reservation_date_start[:7] == date_start_reservation[:7]: 
-
-                dates_reservation_ocuppied = [date for date in range(int(date_start_reservation[-2:]), int(date_end_reservation[-2:]) + 1)]
-                dates_new_reservation = [date for date in range(int(reservation_date_start[-2:]), int(reservation_date_end[-2:]) + 1)]
-
-                for date in dates_reservation_ocuppied: 
-
-                    if not date in dates_new_reservation or date == dates_new_reservation[-1:]:
-
-                        return "Bien mi pana"
-
-                    else: 
-
-                        raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
-                        detail="You select a ocuppied date, please try with another date") 
-
-        return room_reservations
 
 from .customers import get_customer_by_identification, create_customer
 from .payments import create_payment
